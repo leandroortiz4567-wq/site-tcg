@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokéMeta Wiki - Central Competitiva</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CONFIGURAÇÕES DO DESIGN SYSTEM (JSON TOKENS) */
+        :root {
+            --canvas-background: #141125;
+            --navbar-background: #110e1f;
+            --search-bar-background: #2a2244;
+            --card-background: #1d1933;
+            --border-default: transparent;
+            --border-active-neon: #7037cd;
+            --text-primary: #ffffff;
+            --text-secondary: #adabbf;
+            --text-muted: #828099;
+            
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--canvas-background);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            -webkit-font-smoothing: antialiased;
+            overflow-y: scroll;
+        }
+
+        /* BARRA DE ROLAGEM CUSTOMIZADA */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--canvas-background);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--search-bar-background);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-active-neon);
+        }
+
+        /* NAVBAR (MÉTRICAS EXATAS DO JSON) */
+        .navbar {
+            height: 64px;
+            background-color: var(--navbar-background);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-b: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .navbar-left {
+            width: 200px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 380px;
+            height: 36px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-bar {
+            width: 100%;
+            height: 100%;
+            background-color: var(--search-bar-background);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding-left: 38px;
+            padding-right: 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-bar::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-bar:focus {
+            border-color: var(--border-active-neon);
+            box-shadow: 0 0 8px rgba(112, 55, 205, 0.4);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            width: 200px;
+            justify-content: flex-end;
+        }
+
+        .profile-btn {
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .profile-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 15px;
+            cursor: default;
+        }
+
+        .weather-widget i {
+            font-size: 16px;
+        }
+
+        /* ESTRUTURA DO GRID PRINCIPAL (62% / 38%) */
+        .main-container {
+            max-width: 1440px;
+            margin: 64px auto 0 auto;
+            padding: 32px;
+            display: flex;
+            gap: 24px;
+        }
+
+        /* Coluna da Esquerda (62%) */
+        .left-section {
+            width: 62%;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: min-content;
+            gap: 24px;
+        }
+
+        /* Coluna da Direita (38%) */
+        .right-section {
+            width: 38%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ESTILIZAÇÃO PADRÃO DOS CARDS */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 18px;
+            border: 2px solid var(--border-default);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* CARDS DA ESQUERDA (Alinhamento em Linha / Row) */
+        .card-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .card-image-container {
+            width: 130px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card-image-container img {
+            border-radius: 6px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+
+        .card-content {
+            margin-left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-category {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+        }
+
+        .card-body {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* STATUS BORDA ATIVA (METAGROSS CARD) */
+        .card.active-neon {
+            border-color: var(--border-active-neon);
+            box-shadow: 0 0 15px rgba(112, 55, 205, 0.3);
+        }
+        
+        .card.active-neon:hover {
+            box-shadow: 0 0 25px rgba(112, 55, 205, 0.6);
+        }
+
+        /* CARDS DA DIREITA (Alinhamento Vertical / Column) */
+        .card-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .featured-image-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .featured-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card-column:hover .featured-image-container img {
+            transform: scale(1.03);
+        }
+
+        .featured-content {
+            margin-top: 14px;
+        }
+
+        /* RESPONSIVIDADE COORDENADA */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+                padding: 16px;
+            }
+            .left-section, .right-section {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .left-section {
+                grid-template-columns: 1fr;
+            }
+            .navbar {
+                padding: 0 16px;
+            }
+            .search-container {
+                width: 180px;
+            }
+            .weather-widget span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-left">
+            </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="wikiSearch" class="search-bar" placeholder="Pesquise na wiki">
+        </div>
+        
+        <div class="navbar-right">
+            <div class="profile-btn" title="Perfil">
+                <i class="fa-regular fa-user"></i>
+            </div>
+            <div class="weather-widget">
+                <span>Clima</span>
+                <i class="fa-solid fa-temperature-half"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        
+        <section class="left-section" id="newsGrid">
+            
+            <article class="card card-row" data-keywords="dragapult meta competitivo">
+                <div class="card-image-container">
+                    <img src="./images (2).jpg" alt="Dragapult ex">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Decks de dragapult continua cada vez melhor e 56% dos jogadores querem usa-lo</p>
+                </div>
+            </article>
+
+            <article class="card card-row" data-keywords="feraligatr mega crescimento competitivo">
+                <div class="card-image-container">
+                    <img src="./image 1.png" alt="Mega Feraligatr">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Mega Feraligatr esta crescendo 48% em em decks competitivos</p>
+                </div>
+            </article>
+
+            <article class="card card-row" data-keywords="terazard charizard queda rotacao">
+                <div class="card-image-container">
+                    <img src="./image (4) 1.png" alt="Charizard ex">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Decks de terazard caem em 89% pela rotação</p>
+                </div>
+            </article>
+
+            <article class="card card-row" data-keywords="grimmsnarl queda itens rotacao">
+                <div class="card-image-container">
+                    <img src="./image (1) 1.png" alt="Grimmsnarl ex">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Decks de Grimmsnarl caem em 89% pelos itens perdidos pela rotação</p>
+                </div>
+            </article>
+
+            <article class="card card-row" data-keywords="gardevoir queda rotacao">
+                <div class="card-image-container">
+                    <img src="./image (8) 1.png" alt="Gardevoir ex">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Decks de gardevoir caem em 95% pela rotação</p>
+                </div>
+            </article>
+
+            <article class="card card-row active-neon" data-keywords="metagross cogitados meta">
+                <div class="card-image-container">
+                    <img src="./image (2) 1.png" alt="Metagross ex">
+                </div>
+                <div class="card-content">
+                    <span class="card-category">Página Inicial</span>
+                    <p class="card-body">Decks de Metagross estão sendo cogitados em 38% para decks</p>
+                </div>
+            </article>
+
+        </section>
+
+        <section class="right-section">
+            
+            <article class="card card-column">
+                <div class="featured-image-container">
+                    <img src="./image (6).png" alt="Tabletop Gameplay">
+                </div>
+                <div class="featured-content">
+                    <p class="card-body">Cerca de 47% das lojas de card game no Brasil começam a adotar campeonatos, conhecidos como Liguinhas e movimento de compra e venda de cartas cresce 39%</p>
+                </div>
+            </article>
+
+            <article class="card card-column">
+                <div class="featured-image-container">
+                    <img src="./image (7).png" alt="eSports Championship Stage">
+                </div>
+                <div class="featured-content">
+                    <p class="card-body">Animo para torneio mundial de 2026 cresce em 110%, fãs entram em loucura para próximo torneio E é relatado que lojas envolvendo Pokémon, comparado ao ano passado, venderão 20% a mais comparado ao ultimo torneio</p>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('wikiSearch');
+            const newsCards = document.querySelectorAll('#newsGrid .card');
+
+            // Filtro dinâmico em tempo real baseado no input do usuário
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+
+                newsCards.forEach(card => {
+                    const keywords = card.getAttribute('data-keywords');
+                    const textContent = card.querySelector('.card-body').textContent.toLowerCase();
+                    
+                    if (keywords.includes(query) || textContent.includes(query)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
